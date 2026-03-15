@@ -1,0 +1,95 @@
+promptMaster progetto Binance-telegram
+
+Sei un esperto di MCP Workflow 2026. Devo avviare un nuovo progetto
+e ho bisogno che tu generi una guida demo completa in formato .docx
+seguendo il MCP Workflow 2026 best practice (filesystem MCP, GitHub MCP,
+Context7, Sentry, ChromaDB, AGENTS.md, CodeScene, Git Worktrees).
+ragiona passo passo ed esegui quanto ti sto chiedendo
+
+--- DETTAGLI DEL MIO PROGETTO ---
+
+Nome progetto: [buySellBot]
+
+Descrizione: [Bot Python che gestisce trading automatico su
+              Binance con interfaccia Telegram]
+
+Stack tecnologico:
+- Linguaggio: Python 3.10
+- Framework: nessuno
+- Database: SQLite
+- Librerie principali: python-binance, python-telegram-bot,python-dotenv
+- Test: per ora niente
+
+Funzionalità principali:
+. app personale, no necessita di autenticazione
+. autenticazione binance
+. interfaccia tramite telegram, dopo aver creato bot con BotFather
+. menu testuale gestibile solo da telegram
+.possibilita di inserire ordini di acquisto e vendita : a mercato, in stop limit e in trailing 
+.possibilita di agganciare vendita o acquisto di una cripto , allo scattare di un cambiamento avvenuto da un altra cripto (violazione di una soglia a salire o a scendere o variazione in trailing)
+.menu sempre testuale di gestione dell ordine creato
+.ogni ordine dovra girare in un thread proprio.
+.sistema CRUD sulla gestione degli ordini
+.possibilita di mettere in pausa il thread
+.gestione del timeframe, possibilita di scegliere per ogni ordine se la gestione deve essere a timeframe o real time. con la gestione a timeframe il controllo della violazione delle soglie e’fatta al timeframe scelto ,in realtime e’fatta ogni secondo.
+.gestione delle singolarita: possibilita di scegliere di monitorare btc ogni secondo(magari in un thread dedicato)per gli ordini scelti, dove se avviene una variazione rapida a salire o scendere di btc (in base a parametri impostabili) e’possibile prendere decisione opportune sia di salvaguardia che di possibile profitto per gli ordini ancorati al monitoraggio btc
+.deploy in produzione
+
+
+Credenziali/API necessarie:
+- BINANCE_API_KEY :le inserisco poi io a mando
+- TELEGRAM_BOT_TOKEN  : le inserisco poi io a mano
+le credenziali sensibili vanno ttutte iserite nel .env
+
+Editor: VS Code con cline ancorato a copilot->claude
+OS: Linux
+Task management: GitHub Issues
+
+--- COSA DEVE CONTENERE LA GUIDA ---
+
+Genera una guida demo .docx con queste sezioni nell'ordine esatto:
+
+1. Prima di aprire l'editor
+   - Step per creare il repo GitHub
+   - Lista completa delle issue da creare (una per ogni
+     funzionalità, con numero, titolo e descrizione breve)
+   - Comandi per creare la struttura locale del progetto
+
+2. Configurazione MCP
+   - .vscode/mcp.json completo per il mio stack
+     (includi solo i server rilevanti per il progetto)
+   - .env.local con tutte le variabili necessarie
+     e istruzioni su come ottenere ogni credenziale
+   - AGENTS.md personalizzato con:
+     * Stack e versioni esatte
+     * Struttura cartelle del progetto
+     * Workflow obbligatorio 0-8
+     * Convenzioni di codice specifiche per il linguaggio
+     * Regole di sicurezza specifiche per il progetto
+     * Quando fermarsi e chiedere
+
+3. Primo avvio
+   - Prompt esatto per inizializzare ChromaDB
+     con il contesto specifico del progetto
+
+4. Il ciclo di sviluppo
+   - Prompt standard da usare per ogni issue
+   - Tabella sequenza tool call specifica per il progetto
+
+5. Struttura finale del progetto
+   - Albero completo di cartelle e file con commenti
+
+6. Checklist pre-lancio
+   - Tabella con tutte le voci da spuntare
+
+Note importanti per la generazione:
+- Adatta il mcp.json al linguaggio: per Python usa uvx dove
+  necessario, per Node usa npx, per PHP adatta di conseguenza
+- Se il progetto ha un DB, aggiungi il server MCP appropriato
+  (postgres/mysql/sqlite) nel mcp.json
+- Se il progetto ha un frontend, aggiungi Figma MCP come opzionale
+- Le issue devono essere nell'ordine corretto di dipendenze
+- AGENTS.md deve contenere le convenzioni specifiche del linguaggio
+- Includi sempre la nota su testnet/sandbox per API finanziarie
+- Il documento deve essere autonomo: chi lo legge non ha bisogno
+  di altre guide per iniziare

@@ -1,0 +1,50 @@
+{
+  "servers": {
+    
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem",
+               "C:/Users/p4cco/Progetti/mcpProject/buySellBot"],
+      "description": "Accesso filesystem progetto"
+    },
+
+
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PAT}"
+      }
+    },
+
+
+    "sqlite": {
+      "command": "uvx",
+      "args": ["mcp-server-sqlite",
+               "--db-path", "/home/TUO_UTENTE/buySellBot/data/orders.db"]
+    },
+
+
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    },
+
+
+    "chromadb": {
+      "command": "uvx",
+      "args": ["chroma-mcp",
+               "--host", "localhost",
+               "--port", "8000"]
+    },
+
+
+    "sentry": {
+      "command": "uvx",
+      "args": ["mcp-server-sentry"],
+      "env": {
+        "SENTRY_AUTH_TOKEN": "${SENTRY_TOKEN}"
+      }
+    }
+  }
+}

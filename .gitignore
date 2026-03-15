@@ -1,0 +1,7 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+logs/*.log
+*.db
+.vscode/mcp.json  # contiene token MCP — NON committare
