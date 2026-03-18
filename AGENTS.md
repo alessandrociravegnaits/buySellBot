@@ -47,13 +47,22 @@ src/
 ## Workflow Obbligatorio (seguilo sempre)
 0. Leggi AGENTS.md (questo file)
 1. Identifica issue GitHub corrente
-2. context7: resolve-library-id per librerie usate nell'issue
-3. context7: get-library-docs per API rilevanti
-4. filesystem: leggi file esistenti coinvolti
-5. chromadb: query per contesto issue simili precedenti
-6. Scrivi/modifica codice
-7. filesystem: salva modifiche
-8. github: commit su branch issue-N (es: issue-6-ordine-mercato)
+2. Crea un branch dedicato per ogni issue, con naming convention issue-N-titolo (es: issue-6-ordine-mercato)
+3. Scrivi sempre i messaggi di commit in lingua italiana, chiari e descrittivi
+4. context7: resolve-library-id per librerie usate nell'issue
+5. context7: get-library-docs per API rilevanti
+6. filesystem: leggi file esistenti coinvolti
+7. chromadb: query per contesto issue simili precedenti
+8. Scrivi/modifica codice
+9. filesystem: salva modifiche
+10. github: commit su branch issue-N (es: issue-6-ordine-mercato)
+11. Fai push del branch issue-N su origin
+12. Apri una pull request collegata all'issue
+
+
+Regola operativa: quando un'issue e' completata, chiudi sempre il ciclo nello stesso turno con commit + push + PR (salvo blocchi esterni).
+
+Nota: Scrivi sempre i messaggi di commit in lingua italiana, chiari e descrittivi.
 
 
 ## Convenzioni di Codice Python

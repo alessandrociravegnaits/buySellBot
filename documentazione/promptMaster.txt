@@ -73,8 +73,9 @@ Genera una guida demo .docx con queste sezioni nell'ordine esatto:
      con il contesto specifico del progetto
 
 4. Il ciclo di sviluppo
-   - Prompt standard da usare per ogni issue
-   - Tabella sequenza tool call specifica per il progetto
+  - Prima di iniziare il lavoro su una issue, crea un branch dedicato con naming issue-N-titolo (es: issue-6-ordine-mercato)
+  - Prompt standard da usare per ogni issue
+  - Tabella sequenza tool call specifica per il progetto
 
 5. Struttura finale del progetto
    - Albero completo di cartelle e file con commenti
