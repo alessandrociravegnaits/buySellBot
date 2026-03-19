@@ -7,7 +7,7 @@ import logging
 from telegram import Update
 from telegram.ext import Application, CommandHandler
 
-from bot.handlers import binance_status, help_command
+from bot.handlers import binance_status, help_command, start
 from bot.menus import build_main_menu_conversation
 from utils.config import load_settings
 
@@ -27,6 +27,7 @@ def main() -> None:
 	application = Application.builder().token(settings.telegram_bot_token).build()
 
 	application.add_handler(build_main_menu_conversation())
+	application.add_handler(CommandHandler("start", start), group=1)
 	application.add_handler(CommandHandler("help", help_command))
 	application.add_handler(CommandHandler("binance_status", binance_status))
 
