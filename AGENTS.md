@@ -72,6 +72,7 @@ src/
 - Validare TELEGRAM_ALLOWED_USER_ID su ogni update prima di processarlo
 - Usare BINANCE_TESTNET=true durante sviluppo
 - .env e .vscode/mcp.json non vanno mai committati
+- .vscode/mcp.json e' locale: non va stashed; usa .vscode/mcp.example.json come template
 - Logging: non loggare mai chiavi API o token
 - Ordini reali: doppia conferma via Telegram prima di esecuzione
 
