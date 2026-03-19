@@ -55,7 +55,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 		return
 
 	await update.effective_message.reply_text(
-		"Benvenuto in buySellBot. Usa il menu per iniziare.",
+		"Benvenuto in buySellBot. Usa il menu: Ordini, Stato, Config, Monitor.",
 		reply_markup=MAIN_MENU_KEYBOARD,
 	)
 

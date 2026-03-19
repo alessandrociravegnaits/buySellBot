@@ -6,7 +6,8 @@ from telegram import ReplyKeyboardMarkup
 
 MAIN_MENU_KEYBOARD = ReplyKeyboardMarkup(
 	[
-		["Stato Binance", "Aiuto"],
+		["Ordini", "Stato"],
+		["Config", "Monitor"],
 		["Annulla"],
 	],
 	resize_keyboard=True,

@@ -49,13 +49,21 @@ async def handle_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 		return STATE_MAIN_MENU
 
 	selection = update.effective_message.text.strip().lower()
-	if selection == "stato binance":
+	if selection == "ordini":
 		await update.effective_message.reply_text(
-			"Usa /binance_status per la verifica completa."
+			"Sezione Ordini in arrivo."
 		)
-	elif selection == "aiuto":
+	elif selection == "stato":
 		await update.effective_message.reply_text(
-			"Usa /help per vedere tutti i comandi."
+			"Sezione Stato in arrivo."
+		)
+	elif selection == "config":
+		await update.effective_message.reply_text(
+			"Sezione Config in arrivo."
+		)
+	elif selection == "monitor":
+		await update.effective_message.reply_text(
+			"Sezione Monitor in arrivo."
 		)
 	elif selection == "annulla":
 		await update.effective_message.reply_text("Operazione annullata.")
