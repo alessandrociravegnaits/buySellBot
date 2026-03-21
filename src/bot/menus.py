@@ -16,6 +16,7 @@ from binance_client.order_types import (
 	BinanceOrderError,
 	BinanceOrderValidationError,
 	place_market_order,
+	place_stop_loss_limit_order,
 )
 from bot.handlers import ensure_authorized, get_settings_or_reply
 from bot.keyboards import MAIN_MENU_KEYBOARD
@@ -61,7 +62,9 @@ async def handle_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 	selection = update.effective_message.text.strip().lower()
 	if selection == "ordini":
 		await update.effective_message.reply_text(
-			"Inserisci ordine market nel formato: MARKET BUY BTCUSDT 0.001"
+			"Inserisci ordine nel formato:\n"
+			"- MARKET BUY BTCUSDT 0.001\n"
+			"- STOP_LIMIT BUY BTCUSDT 0.001 65000 64000"
 		)
 		return STATE_ORDER_MARKET_INPUT
 	elif selection == "stato":
@@ -119,6 +122,44 @@ def _parse_market_order_input(user_text: str) -> tuple[str, str, float]:
 	return side.upper(), symbol.upper(), quantity
 
 
+def _parse_stop_limit_order_input(user_text: str) -> tuple[str, str, float, float, float]:
+	"""Parsa il comando testuale ordine STOP_LIMIT.
+
+	Args:
+		user_text: Testo inserito dall'utente.
+
+	Returns:
+		tuple[str, str, float, float, float]: Side, symbol, quantity, price, stop_price.
+
+	Raises:
+		ValueError: Se il formato non e' valido.
+	"""
+
+	parts = user_text.strip().split()
+	if len(parts) != 6:
+		raise ValueError("Formato non valido.")
+
+	order_kind, side, symbol, quantity_raw, price_raw, stop_price_raw = parts
+	if order_kind.upper() != "STOP_LIMIT":
+		raise ValueError("Solo ordini STOP_LIMIT supportati in questa fase.")
+
+	try:
+		quantity = float(quantity_raw)
+		price = float(price_raw)
+		stop_price = float(stop_price_raw)
+	except ValueError as exc:
+		raise ValueError("Quantity, price e stop_price devono essere numeri validi.") from exc
+
+	if quantity <= 0:
+		raise ValueError("Quantity deve essere maggiore di zero.")
+	if price <= 0:
+		raise ValueError("Price deve essere maggiore di zero.")
+	if stop_price <= 0:
+		raise ValueError("Stop price deve essere maggiore di zero.")
+
+	return side.upper(), symbol.upper(), quantity, price, stop_price
+
+
 async def handle_market_order_input(
 	update: Update,
 	context: ContextTypes.DEFAULT_TYPE,
@@ -134,25 +175,51 @@ async def handle_market_order_input(
 	if update.effective_message is None or update.effective_message.text is None:
 		return STATE_ORDER_MARKET_INPUT
 
+	input_text = update.effective_message.text.strip()
+	input_parts = input_text.split(maxsplit=1)
+	order_kind = input_parts[0].upper() if input_parts else ""
+
 	try:
-		side, symbol, quantity = _parse_market_order_input(update.effective_message.text)
+		if order_kind == "MARKET":
+			side, symbol, quantity = _parse_market_order_input(input_text)
+			context.user_data["pending_market_order"] = {
+				"kind": "MARKET",
+				"side": side,
+				"symbol": symbol,
+				"quantity": quantity,
+			}
+			confirm_message = (
+				"Conferma ordine: "
+				f"MARKET {side} {symbol} {quantity}. "
+				"Rispondi CONFERMA per inviare oppure ANNULLA per annullare."
+			)
+		elif order_kind == "STOP_LIMIT":
+			side, symbol, quantity, price, stop_price = _parse_stop_limit_order_input(input_text)
+			context.user_data["pending_market_order"] = {
+				"kind": "STOP_LOSS_LIMIT",
+				"side": side,
+				"symbol": symbol,
+				"quantity": quantity,
+				"price": price,
+				"stop_price": stop_price,
+			}
+			confirm_message = (
+				"Conferma ordine: "
+				f"STOP_LIMIT {side} {symbol} {quantity} {price} {stop_price}. "
+				"Rispondi CONFERMA per inviare oppure ANNULLA per annullare."
+			)
+		else:
+			raise ValueError("Tipo ordine non supportato. Usa MARKET o STOP_LIMIT.")
 	except ValueError as exc:
 		await update.effective_message.reply_text(
-			f"Input non valido: {exc}\nRiprova: MARKET BUY BTCUSDT 0.001"
+			f"Input non valido: {exc}\n"
+			"Riprova con uno dei formati:\n"
+			"- MARKET BUY BTCUSDT 0.001\n"
+			"- STOP_LIMIT BUY BTCUSDT 0.001 65000 64000"
 		)
 		return STATE_ORDER_MARKET_INPUT
 
-	context.user_data["pending_market_order"] = {
-		"side": side,
-		"symbol": symbol,
-		"quantity": quantity,
-	}
-
-	await update.effective_message.reply_text(
-		"Conferma ordine: "
-		f"MARKET {side} {symbol} {quantity}. "
-		"Rispondi CONFERMA per inviare oppure ANNULLA per annullare."
-	)
+	await update.effective_message.reply_text(confirm_message)
 	return STATE_ORDER_MARKET_CONFIRM
 
 
@@ -190,12 +257,27 @@ async def handle_market_order_confirm(
 		)
 		return STATE_MAIN_MENU
 
+	kind = str(pending.get("kind", "MARKET"))
 	side = str(pending["side"])
 	symbol = str(pending["symbol"])
 	quantity = float(pending["quantity"])
+	price = float(pending["price"]) if "price" in pending else None
+	stop_price = float(pending["stop_price"]) if "stop_price" in pending else None
 
 	try:
-		response = place_market_order(settings, symbol=symbol, side=side, quantity=quantity)
+		if kind == "STOP_LOSS_LIMIT":
+			if price is None or stop_price is None:
+				raise BinanceOrderValidationError("Price e stop price sono obbligatori.")
+			response = place_stop_loss_limit_order(
+				settings,
+				symbol=symbol,
+				side=side,
+				quantity=quantity,
+				price=price,
+				stop_price=stop_price,
+			)
+		else:
+			response = place_market_order(settings, symbol=symbol, side=side, quantity=quantity)
 	except BinanceOrderValidationError as exc:
 		await update.effective_message.reply_text(f"Ordine non valido: {exc}")
 		return STATE_MAIN_MENU
@@ -210,19 +292,22 @@ async def handle_market_order_confirm(
 	database.initialize()
 	dao = OrdersDAO(database)
 	status = str(response.get("status", "NEW"))
+	note = f"binance_order_id={response.get('orderId')};order_type={kind}"
+	if stop_price is not None:
+		note = f"{note};stop_price={stop_price}"
 	order_id = dao.create_order(
 		symbol=symbol,
 		side=side,
 		quantity=quantity,
 		status=status,
-		price=None,
-		note=f"binance_order_id={response.get('orderId')}",
+		price=price,
+		note=note,
 	)
 
 	context.user_data.pop("pending_market_order", None)
 	await update.effective_message.reply_text(
 		"Ordine inviato con successo. "
-		f"DB id={order_id}, Binance id={response.get('orderId')}, status={status}."
+		f"Tipo={kind}, DB id={order_id}, Binance id={response.get('orderId')}, status={status}."
 	)
 	return STATE_MAIN_MENU
 
