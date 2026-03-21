@@ -23,6 +23,7 @@ from bot.handlers import ensure_authorized, get_settings_or_reply
 from bot.keyboards import MAIN_MENU_KEYBOARD
 from db.dao import OrdersDAO
 from db.database import Database
+from orders.manager import start_order_thread
 
 STATE_MAIN_MENU = 1
 STATE_ORDER_MARKET_INPUT = 2
@@ -368,11 +369,13 @@ async def handle_market_order_confirm(
 		price=price,
 		note=note,
 	)
+	thread_started = start_order_thread(order_id)
 
 	context.user_data.pop("pending_market_order", None)
+	thread_status = "attivo" if thread_started else "gia' attivo"
 	await update.effective_message.reply_text(
 		"Ordine inviato con successo. "
-		f"Tipo={kind}, DB id={order_id}, Binance id={response.get('orderId')}, status={status}."
+		f"Tipo={kind}, DB id={order_id}, Binance id={response.get('orderId')}, status={status}, thread={thread_status}."
 	)
 	return STATE_MAIN_MENU
 
