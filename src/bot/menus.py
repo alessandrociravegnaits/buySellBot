@@ -17,6 +17,7 @@ from binance_client.order_types import (
 	BinanceOrderValidationError,
 	place_market_order,
 	place_stop_loss_limit_order,
+	place_trailing_stop_order,
 )
 from bot.handlers import ensure_authorized, get_settings_or_reply
 from bot.keyboards import MAIN_MENU_KEYBOARD
@@ -64,7 +65,8 @@ async def handle_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 		await update.effective_message.reply_text(
 			"Inserisci ordine nel formato:\n"
 			"- MARKET BUY BTCUSDT 0.001\n"
-			"- STOP_LIMIT BUY BTCUSDT 0.001 65000 64000"
+			"- STOP_LIMIT BUY BTCUSDT 0.001 65000 64000\n"
+			"- TRAILING_STOP BUY BTCUSDT 0.001 100"
 		)
 		return STATE_ORDER_MARKET_INPUT
 	elif selection == "stato":
@@ -160,6 +162,41 @@ def _parse_stop_limit_order_input(user_text: str) -> tuple[str, str, float, floa
 	return side.upper(), symbol.upper(), quantity, price, stop_price
 
 
+def _parse_trailing_stop_order_input(user_text: str) -> tuple[str, str, float, int]:
+	"""Parsa il comando testuale ordine TRAILING_STOP.
+
+	Args:
+		user_text: Testo inserito dall'utente.
+
+	Returns:
+		tuple[str, str, float, int]: Side, symbol, quantity, trailing_delta.
+
+	Raises:
+		ValueError: Se il formato non e' valido.
+	"""
+
+	parts = user_text.strip().split()
+	if len(parts) != 5:
+		raise ValueError("Formato non valido.")
+
+	order_kind, side, symbol, quantity_raw, trailing_delta_raw = parts
+	if order_kind.upper() != "TRAILING_STOP":
+		raise ValueError("Solo ordini TRAILING_STOP supportati in questa fase.")
+
+	try:
+		quantity = float(quantity_raw)
+		trailing_delta = int(trailing_delta_raw)
+	except ValueError as exc:
+		raise ValueError("Quantity e trailing_delta devono essere numeri validi.") from exc
+
+	if quantity <= 0:
+		raise ValueError("Quantity deve essere maggiore di zero.")
+	if trailing_delta <= 0:
+		raise ValueError("Trailing delta deve essere maggiore di zero.")
+
+	return side.upper(), symbol.upper(), quantity, trailing_delta
+
+
 async def handle_market_order_input(
 	update: Update,
 	context: ContextTypes.DEFAULT_TYPE,
@@ -208,14 +245,29 @@ async def handle_market_order_input(
 				f"STOP_LIMIT {side} {symbol} {quantity} {price} {stop_price}. "
 				"Rispondi CONFERMA per inviare oppure ANNULLA per annullare."
 			)
+		elif order_kind == "TRAILING_STOP":
+			side, symbol, quantity, trailing_delta = _parse_trailing_stop_order_input(input_text)
+			context.user_data["pending_market_order"] = {
+				"kind": "TRAILING_STOP",
+				"side": side,
+				"symbol": symbol,
+				"quantity": quantity,
+				"trailing_delta": trailing_delta,
+			}
+			confirm_message = (
+				"Conferma ordine: "
+				f"TRAILING_STOP {side} {symbol} {quantity} {trailing_delta}. "
+				"Rispondi CONFERMA per inviare oppure ANNULLA per annullare."
+			)
 		else:
-			raise ValueError("Tipo ordine non supportato. Usa MARKET o STOP_LIMIT.")
+			raise ValueError("Tipo ordine non supportato. Usa MARKET, STOP_LIMIT o TRAILING_STOP.")
 	except ValueError as exc:
 		await update.effective_message.reply_text(
 			f"Input non valido: {exc}\n"
 			"Riprova con uno dei formati:\n"
 			"- MARKET BUY BTCUSDT 0.001\n"
-			"- STOP_LIMIT BUY BTCUSDT 0.001 65000 64000"
+			"- STOP_LIMIT BUY BTCUSDT 0.001 65000 64000\n"
+			"- TRAILING_STOP BUY BTCUSDT 0.001 100"
 		)
 		return STATE_ORDER_MARKET_INPUT
 
@@ -263,6 +315,7 @@ async def handle_market_order_confirm(
 	quantity = float(pending["quantity"])
 	price = float(pending["price"]) if "price" in pending else None
 	stop_price = float(pending["stop_price"]) if "stop_price" in pending else None
+	trailing_delta = int(pending["trailing_delta"]) if "trailing_delta" in pending else None
 
 	try:
 		if kind == "STOP_LOSS_LIMIT":
@@ -275,6 +328,16 @@ async def handle_market_order_confirm(
 				quantity=quantity,
 				price=price,
 				stop_price=stop_price,
+			)
+		elif kind == "TRAILING_STOP":
+			if trailing_delta is None:
+				raise BinanceOrderValidationError("Trailing delta obbligatorio.")
+			response = place_trailing_stop_order(
+				settings,
+				symbol=symbol,
+				side=side,
+				quantity=quantity,
+				trailing_delta=trailing_delta,
 			)
 		else:
 			response = place_market_order(settings, symbol=symbol, side=side, quantity=quantity)
@@ -295,6 +358,8 @@ async def handle_market_order_confirm(
 	note = f"binance_order_id={response.get('orderId')};order_type={kind}"
 	if stop_price is not None:
 		note = f"{note};stop_price={stop_price}"
+	if trailing_delta is not None:
+		note = f"{note};trailing_delta={trailing_delta}"
 	order_id = dao.create_order(
 		symbol=symbol,
 		side=side,
