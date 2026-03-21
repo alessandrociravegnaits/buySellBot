@@ -1,0 +1,14 @@
+CREATE TABLE IF NOT EXISTS orders (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	symbol TEXT NOT NULL,
+	side TEXT NOT NULL,
+	quantity REAL NOT NULL,
+	price REAL,
+	status TEXT NOT NULL,
+	note TEXT,
+	created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+CREATE INDEX IF NOT EXISTS idx_orders_symbol ON orders(symbol);
