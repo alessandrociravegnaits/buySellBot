@@ -73,6 +73,7 @@ src/
 - Usare BINANCE_TESTNET=true durante sviluppo
 - .env e .vscode/mcp.json non vanno mai committati
 - .vscode/mcp.json e' locale: non va stashed; usa .vscode/mcp.example.json come template
+- ChromaDB: per verifiche usa solo list/get/peek/count; non usare delete come ping
 - Logging: non loggare mai chiavi API o token
 - Ordini reali: doppia conferma via Telegram prima di esecuzione
 

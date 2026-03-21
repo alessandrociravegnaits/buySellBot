@@ -91,5 +91,6 @@ Note importanti per la generazione:
 - Le issue devono essere nell'ordine corretto di dipendenze
 - AGENTS.md deve contenere le convenzioni specifiche del linguaggio
 - Includi sempre la nota su testnet/sandbox per API finanziarie
+- ChromaDB: per verifiche usa solo list/get/peek/count; non usare delete come ping
 - Il documento deve essere autonomo: chi lo legge non ha bisogno
   di altre guide per iniziare
