@@ -1,0 +1,54 @@
+{
+  "servers": {
+    "filesystem": {
+      "command": "/path/to/node20/bin/node",
+      "args": [
+        "/path/to/node20/lib/node_modules/@modelcontextprotocol/server-filesystem/dist/index.js",
+        "/path/to/workspace/buySellBot"
+      ],
+      "description": "Accesso filesystem progetto"
+    },
+    "github": {
+      "command": "/path/to/node20/bin/node",
+      "args": [
+        "/path/to/node20/lib/node_modules/@modelcontextprotocol/server-github/dist/index.js"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_PAT}"
+      }
+    },
+    "sqlite": {
+      "command": "/path/to/workspace/buySellBot/venv/bin/uvx",
+      "args": [
+        "mcp-server-sqlite",
+        "--db-path",
+        "/path/to/workspace/buySellBot/data/orders.db"
+      ]
+    },
+    "context7": {
+      "command": "/path/to/node20/bin/node",
+      "args": [
+        "/path/to/node20/lib/node_modules/@upstash/context7-mcp/dist/index.js"
+      ]
+    },
+    "chromadb": {
+      "command": "/path/to/workspace/buySellBot/venv/bin/uvx",
+      "args": [
+        "chroma-mcp",
+        "--host",
+        "localhost",
+        "--port",
+        "8000"
+      ]
+    },
+    "sentry": {
+      "command": "/path/to/workspace/buySellBot/venv/bin/uvx",
+      "args": [
+        "mcp-server-sentry"
+      ],
+      "env": {
+        "SENTRY_AUTH_TOKEN": "${env:SENTRY_TOKEN}"
+      }
+    }
+  }
+}
