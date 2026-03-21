@@ -47,13 +47,18 @@ src/
 ## Workflow Obbligatorio (seguilo sempre)
 0. Leggi AGENTS.md (questo file)
 1. Identifica issue GitHub corrente
-2. context7: resolve-library-id per librerie usate nell'issue
-3. context7: get-library-docs per API rilevanti
-4. filesystem: leggi file esistenti coinvolti
-5. chromadb: query per contesto issue simili precedenti
-6. Scrivi/modifica codice
-7. filesystem: salva modifiche
-8. github: commit su branch issue-N (es: issue-6-ordine-mercato)
+2. Crea un branch dedicato per ogni issue, con naming convention issue-N-titolo (es: issue-6-ordine-mercato)
+3. context7: resolve-library-id per librerie usate nell'issue
+4. context7: get-library-docs per API rilevanti
+5. filesystem: leggi file esistenti coinvolti
+6. chromadb: query per contesto issue simili precedenti
+7. Scrivi/modifica codice
+8. filesystem: salva modifiche
+9. github: commit su branch issue-N (es: issue-6-ordine-mercato)
+10. Fai push del branch issue-N su origin
+11. Apri una pull request collegata all'issue
+
+Regola operativa: quando un'issue e' completata, chiudi sempre il ciclo nello stesso turno con commit + push + PR (salvo blocchi esterni).
 
 
 ## Convenzioni di Codice Python
@@ -80,11 +85,10 @@ src/
 
 ## Gestione Thread
 - Ogni ordine ha il proprio threading.Thread
-- Usa threading.Event per stop e pause
+- Usa threading.Event per stop e pausa
 - Accesso condiviso a DB: usa threading.Lock
 - BTC monitor: thread dedicato sempre attivo se BTC_MONITOR_ENABLED=true
 - Non terminare thread brutalmente: usa Event.set() e join()
-
 
 ## Quando Fermarsi e Chiedere
 - Prima di eseguire ordini REALI su Binance
@@ -92,3 +96,11 @@ src/
 - Se una modifica tocca piu di 3 file contemporaneamente
 - Prima di modificare lo schema DB (migration needed)
 - Se un thread solleva eccezione non gestita
+
+## Best practice persistenza ChromaDB
+- Avvia sempre ChromaDB con lo stesso path (es. --path ./chroma_data) per garantire la persistenza dei dati.
+- Verifica che il processo abbia permessi di scrittura sulla directory del database.
+- Dopo ogni modifica importante (es. aggiunta documenti), controlla la presenza della collection/documenti tramite API o tool.
+- Evita di killare il processo ChromaDB senza un normale shutdown: un kill brutale può causare perdita di dati non flushati.
+- Non eseguire script o comandi che resettano/cancellano la directory del database senza backup.
+- Se usi più istanze/server ChromaDB, assicurati che puntino allo stesso path se vuoi condividere i dati.
